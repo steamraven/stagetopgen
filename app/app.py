@@ -215,6 +215,11 @@ def instr_row(instr: ui.TagChild, *args: ui.TagChild):
         ui.panel_main(*args, width=9),
     )
 
+
+def column_auto(*args: ui.TagChild):
+    return ui.div(*args, class_="col-auto")
+
+
 #############################################################################################################
 # UI/Frontend
 
@@ -272,35 +277,35 @@ app_ui = ui.page_fluid(
                 ui.row(ui.output_text("text_selection_name")),
                 class_="col",
             ),
-            ui.div(
+            column_auto(
                 ui.row("Qty"),
                 ui.row(
                     set_required(
-                        ui.input_numeric("numeric_selection_qty", None, value=0, width="100px")
+                        ui.input_numeric(
+                            "numeric_selection_qty", None, value=0, width="100px"
+                        )
                     )
                 ),
-                class_="col-auto",
             ),
-            ui.div(
+            column_auto(
                 ui.row("Print Time"),
                 ui.row(ui.input_text("numeric_selection_time", None, width="100px")),
-                class_="col-auto",
             ),
-            ui.div(
+            column_auto(
                 ui.row("Filament (g)"),
                 ui.row(
                     ui.input_numeric(
                         "numeric_selection_filament", None, value=0, width="100px"
                     ),
                 ),
-                class_="col-auto",
             ),
-            ui.div(
+            column_auto(
                 ui.row(ui.br()),
                 ui.row(
-                    ui.input_action_button("button_selection_update", "Update", width="90px")
+                    ui.input_action_button(
+                        "button_selection_update", "Update", width="90px"
+                    )
                 ),
-                class_="col-auto",
             ),
         ),
     ),
