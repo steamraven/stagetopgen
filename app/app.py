@@ -26,9 +26,9 @@ SOFTWARE.
 # pyright: reportUnusedFunction=false
 
 
+import types
 from dataclasses import dataclass
 from pathlib import Path
-import types
 from typing import Any, Callable, Iterator, SupportsInt, cast
 
 import pandas
@@ -39,8 +39,7 @@ from pandas._libs.missing import NAType
 from py2vega.functions.string import pad
 from shinywidgets import output_widget, reactive_read, register_widget, render_widget
 
-from shiny import App, Outputs, Session, reactive, render, ui, Inputs
-
+from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 
 # Reactivity requires copying dataframes instead of in-place updates
 pandas.options.mode.copy_on_write = True
@@ -140,7 +139,7 @@ def to_minutes(text: str | None) -> int | None:
     split = text.split(":")
     if len(split) != 2:
         return None
-    return int(split[0]) * 60 + int(split[1]) 
+    return int(split[0]) * 60 + int(split[1])
 
 
 def format_minutes(min: float) -> str:
@@ -153,10 +152,11 @@ def format_minutes(min: float) -> str:
 # must return truthy value
 def format_minutes_vega(cell: Any):
     if cell.value:
-        return str(int(cell.value / 60)) + ":" + pad(str(cell.value % 60), 2, "0", "left")
+        return (
+            str(int(cell.value / 60)) + ":" + pad(str(cell.value % 60), 2, "0", "left")
+        )
     else:
         return "-"
-
 
 
 def to_int_nan(value: str | None) -> int | NAType:
@@ -170,6 +170,7 @@ def to_int_nan(value: str | None) -> int | NAType:
 # Must return truthy value
 def format_empty_nan_vega(cell: Any):
     return cell.value if cell.value else "-"
+
 
 # Must pass datagrid module as it can only be imported within the server function
 def dg_renderers(dg: types.ModuleType) -> dict[str, Any]:
@@ -208,8 +209,9 @@ def check_style_dependencies(input: Inputs) -> str | None:
                 return f'{dep.condition_type} style "{dep.condition_style}" requires {dep.dependency_type} style "{dep.dependency_style}"'
     return None
 
+
 def instr_row(instr: ui.TagChild, *args: ui.TagChild):
-    "Helper to renter an instruction row"
+    "UI Helper to renter an instruction row"
     return ui.layout_sidebar(
         ui.panel_sidebar(instr, width=3, style=css(height="100%")),
         ui.panel_main(*args, width=9),
@@ -232,7 +234,9 @@ app_ui = ui.page_fluid(
             href="https://www.kickstarter.com/projects/gutshotgames/stagetop-the-3d-printed-gaming-table",
         ),
         ui.p("Copyright 2023 Matthew Hawn"),
-        ui.p("This project is independant and not affiliated with StageTop, GutShotGames, or MyMiniFactory "),
+        ui.p(
+            "This project is independant and not affiliated with StageTop, GutShotGames, or MyMiniFactory "
+        ),
         class_="text-center",
     ),
     instr_row(
@@ -260,7 +264,9 @@ app_ui = ui.page_fluid(
         ui.row(
             ui.input_switch("switch_show_qty", "Only Show Qty > 0"),
             ui.input_action_button(
-                "button_clear_time_filament", "Clear ALL time and filament", width="300px"
+                "button_clear_time_filament",
+                "Clear ALL time and filament",
+                width="300px",
             ),
         ),
         ui.row(output_widget("widget_grid")),
@@ -268,7 +274,8 @@ app_ui = ui.page_fluid(
     ui.hr(),
     instr_row(
         ui.div(
-            "Step 4: Update components", ui.HTML("&nbsp;"),
+            "Step 4: Update components",
+            ui.HTML("&nbsp;"),
             ui.input_action_link("link_comp_more", "More Info"),
         ),
         ui.row(
@@ -312,9 +319,15 @@ app_ui = ui.page_fluid(
     ui.hr(),
     instr_row(
         "Step 5: Review totals",
-        ui.row(ui.output_text("text_totals_error")),
         ui.row(
-            "Totals:",
+            column_auto(
+                "Totals:",
+            ),
+            column_auto(
+                ui.output_text("text_totals_error", inline=True),
+            ),
+        ),
+        ui.row(
             output_widget("widget_totals"),
         ),
     ),
@@ -354,7 +367,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def get_selection() -> tuple[None, None] | tuple[int, int]:
         """
         Get the current single row selection as row, key or None, None
-        
+
         Reactive Inputs: selections_value
         Other Inputs: datagrid
         """
@@ -378,7 +391,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def parse_datafile():
         """
         Hande datafile selection.  Called on start
-        
+
         Reactiive Inputs: file_base_datafile
         Reactive Outputs:  base_df, qty_df, selections_value
         Other Inputs: style_inputs
@@ -440,7 +453,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def text_style_error():
         """
         Render any errors based on style dependencies
-        
+
         Reactive Inputs: style select controls
         Other Inputs: style_inputs, style_dependencies
         """
@@ -451,7 +464,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def generate_table():
         """
         Generate a table based on default qtys for the selected styles
-        
+
         Reactive Inputs: button_generate_table
         Reactive Outputs: qty_df, selections_value
         Other Inputs: style select controls, numeric_width, numeric_height, qty_calculations, style_inputs, style_dependencies
@@ -581,7 +594,7 @@ def server(input: Inputs, output: Outputs, session: Session):
 
         value = int(df.at[key, "Qty"]) if key is not None else ""
         # update_numeric can take a "" to clear the field. None does not work
-        ui.update_numeric("numeric_selection_qty", value=value) # type: ignore 
+        ui.update_numeric("numeric_selection_qty", value=value)  # type: ignore
 
     @reactive.Effect
     def update_selection_time():
@@ -610,7 +623,7 @@ def server(input: Inputs, output: Outputs, session: Session):
         value = df.at[key, "Filament"] if key is not None else None
         value = int(value) if value is not None and notna(value) else ""
         # update_numeric can take a "" to clear the field. None does not work
-        ui.update_numeric("numeric_selection_filament", value=value) # type: ignore
+        ui.update_numeric("numeric_selection_filament", value=value)  # type: ignore
 
     @reactive.Effect
     @reactive.event(input.button_selection_update)
@@ -646,9 +659,15 @@ def server(input: Inputs, output: Outputs, session: Session):
         ui.modal_show(
             ui.modal(
                 ui.p("Update Qty to add, remove or change components"),
-                ui.p("To get a better estimate, fill out Print Time and Filament from your slicer"),
-                ui.p('Use the "Only Show Qty>0" to help narrow down which components to slice'),
-                ui.p('Use the "Clear ALL time and filament" button to clear out the default print times and filament usages'),
+                ui.p(
+                    "To get a better estimate, fill out Print Time and Filament from your slicer"
+                ),
+                ui.p(
+                    'Use the "Only Show Qty>0" to help narrow down which components to slice'
+                ),
+                ui.p(
+                    'Use the "Clear ALL time and filament" button to clear out the default print times and filament usages'
+                ),
                 title="More Info: Update Components",
                 easy_close=True,
             )
@@ -659,18 +678,17 @@ def server(input: Inputs, output: Outputs, session: Session):
     def button_clear_time_filament():
         """
         Clear all PrintTime and Filament values
-        
+
         Reactive Input: button_clear_time_fimament
         Reactive Ouputs: qty_df
         Other Inputs: qty_df
-        
+
         """
         df = qty_df()
         if df is None:
             return
         df = df.assign(PrintTime=NA, Filament=NA)
         qty_df.set(df)
-
 
     ########## Step 5 - Review Totals
 
@@ -696,7 +714,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def widget_totals():
         """
         Generate a datagrid of totals
-        
+
         Reactive Inputs: qty_df
         """
         df = qty_df()

@@ -10,6 +10,7 @@ shinywidgets = "*"
 
 [dev-packages]
 shinylive = "*"
+black = "*"
 
 [requires]
 python_version = "*"
