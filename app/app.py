@@ -32,6 +32,7 @@ import types
 from typing import Any, Callable, Iterator, SupportsInt, cast
 
 import pandas
+import traittypes  # type: ignore Needed to ensure shinylive includes this dep
 from htmltools import css
 from pandas import NA, DataFrame, isna, notna  # type: ignore  pandas stub is incomplete
 from pandas._libs.missing import NAType
